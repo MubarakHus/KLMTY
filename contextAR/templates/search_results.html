@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Word Index</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script>
+        $(document).ready(function(){
+            $('#search-button').click(function(){
+                var word = $('#word-input').val();
+                $.ajax({
+                    url: '/search/?word=' + word,
+                    type: 'GET',
+                    success: function(response) {
+                        $('#result').text('Index of "' + word + '": ' + response.index);
+                    },
+                    error: function() {
+                        $('#result').text('Error in searching the word.');
+                    }
+                });
+            });
+        });
+    </script>
+</head>
+<body>
+    <input type="text" id="word-input" placeholder="Enter a word">
+    <button id="search-button">Search</button>
+    <div id="result"></div>
+</body>
+</html>

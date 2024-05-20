@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>كلمتي</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.4.0/dist/confetti.browser.min.js"></script>
+    <link href="https://fonts.googleapis.com/css?family=Merriweather&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Amiri&display=swap" rel="stylesheet">
+
+
+<style>
+    /* Colors inspired by Arab Sadu weaving */
+    :root {
+     --sadu-red: #910c13;
+     --sadu-beige: #F8F4E3;
+     --sadu-white: #D6CC99;
+     --sadu-black: #0D1B2A;
+    }
+    
+    body {
+     font-family: 'Amiri', serif;
+     background-color: #fbefcc; /* Changed background color to #0D1B2A */
+     background-repeat: repeat-y; /* Makes the image repeat vertically */
+     background-size: cover; /* Adjusts the size of the background image to cover the width of the body */
+     background-position: center; /* Centers the background image */
+     color: var(--sadu-black);
+     margin: 0;
+     padding: 0;
+     display: flex;
+     flex-direction: column;
+     align-items: center;
+     height: 100vh;
+     padding: 20px;
+    }
+    
+    .pattern-line {
+     position: fixed; /* Changed from absolute to fixed to ensure it covers the entire height of the view */
+     left: 20%; /* Set the starting point of the div on the x-axis */
+     top: 0;
+     bottom: 0;
+     width: 100px; /* Width of the vertical line */
+     background-repeat: repeat-y; /* Ensures the image repeats vertically */
+     background-size: 100px auto; /* Maintains the width and adjusts height automatically */
+     background-position: center; /* Centers the background image in the div */
+     z-index: -1; /* Keeps this div behind other content */
+     min-height: 100vh; /* Ensures at least the height of the viewport */
+    }
+    
+    .header {
+     text-align: center;
+     color: #674d3c;
+     text-transform: uppercase;
+     letter-spacing: 2px;
+     font-weight: bold;
+     padding: 10px;
+     font-size: 44px;
+    }
+    
+    .input-group {
+     display: flex;
+     align-items: center;
+     width: 100%;
+     max-width: 600px;
+     margin: 10px 0;
+     padding: 15px;
+     border-radius: 20px;
+     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+     background-color: var(--sadu-black);
+    }
+    
+    .input-group input[type="text"] {
+     flex-grow: 1;
+     padding: 15px;
+     margin: 0 10px;
+     border-radius: 20px;
+     border: 1px solid var(--sadu-black);
+     font-size: 20px;
+     background-color: var(--sadu-beige);
+     color: var(--sadu-black);
+    }
+    
+    .button {
+     font-family: 'Amiri', serif;
+     padding: 10px 20px;
+     background-color: var(--sadu-red);
+     color: var(--sadu-beige);
+     border: none;
+     border-radius: 20px;
+     cursor: pointer;
+     font-size: 25px;
+     font-weight: bold;
+     text-transform: uppercase;
+     letter-spacing: 1px;
+     transition: background-color 0.3s ease;
+    }
+    
+    .button:hover {
+     background-color: var(--sadu-black);
+    }
+    
+    .list-container {
+     display: block;
+     border-radius: 20px;
+     width: 90%;
+     max-width: 500px;
+     margin: 10px 0;
+     padding: 10px 20px;
+    }
+    
+    .winning-statement {
+     color: var(--sadu-red);
+     font-size: 24px;
+     font-weight: bold;
+     font-color: #008000;
+    }
+    
+    #counter {
+     font-family: 'Roboto', sans-serif;
+     font-size: 24px;
+     margin-left: 10px; /* Adjust margin as needed */
+     padding-right: 10px;
+     color: white;
+     background-color: transparent;
+     border-radius: 5px;
+    }
+    
+    .word-box {
+     padding: 10px;
+     border-radius: 8px;
+     display: flex;
+     align-items: center;
+     width: 100%;
+     background-color: var(--sadu-beige);
+     color: var(--sadu-black);
+     position: relative;
+     border: 3px solid var(--sadu-black);
+    }
+    
+    .index {
+     margin-left: auto;
+     position: absolute;
+     top: 50%;
+     right: 10px;
+     transform: translateY(-50%);
+     font-weight: bold;
+    }
+    
+    .progress-bar {
+     position: absolute;
+     left: 0;
+     top: 0;
+     height: 100%;
+     border-radius: 3px;
+     background-color: var(--sadu-red);
+    }
+    
+    .last-word {
+     border: 6px solid var(--sadu-black); /* Thicker border */
+     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5); /* Shadow for elevation */
+     background-color: var(--sadu-white); /* Slightly different background */
+    }
+
+    @media only screen and (max-width: 600px) {
+        .header {
+            font-size: 32px;
+        }
+    
+        .input-group {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end; /* Align items to the right */
+            width: 100%;
+            max-width: 600px;
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            background-color: var(--sadu-black);
+            
+        }
+    
+        .input-group input[type="text"] {
+            margin: 5px 0;
+            width: 100%;
+            font-size: 16px;
+        }
+    
+        .button {
+            font-size: 18px;
+            padding: 10px 15px; /* Adjust padding for smaller screens */
+            margin-left: -1px; /* Reduce the left margin for smaller screens */
+        }
+    
+        .word-box {
+            padding: 8px;
+            font-size: 18px;
+        }
+    
+        .word-text {
+            font-size: 18px;
+        }
+    
+        .error-message {
+            font-size: 18px;
+        }
+
+        .list-container {
+            display: flex; /* Add this line */
+            flex-direction: column; /* Add this line */
+            align-items: center; /* Add this line */
+        }
+    }
+    
+    @keyframes fadeInUp {
+     0% {
+       opacity: 0;
+       transform: translateY(20px);
+     }
+     100% {
+       opacity: 1;
+       transform: translateY(0);
+     }
+    }
+    
+    .word-box {
+     animation: fadeInUp 0.5s ease-out;
+    }
+    
+    .word-text {
+     color: var(--sadu-black);
+     z-index: 1;
+     font-size: 24px;
+    }
+    
+    .error-message {
+     color: var(--sadu-red);
+     font-size: 24px;
+     margin-top: 5px;
+     display: none;
+    }
+    
+
+    
+    @media only screen and (max-width: 768px) {
+     .pattern-line {
+       display: block; /* Visible only on mobile */
+     }
+     body {
+       background-image: none; /* No background image on mobile */
+     }
+     .header {
+       width: 100%;
+     }
+    }
+  </style>
+    <script>
+        let guessCount = 0; // Initialize guess count
+
+        // Function to update the counter
+        function updateCounter() {
+        document.getElementById('counter').textContent = guessCount;
+        }
+
+        // Example usage to increment guess count (you can adapt this according to your logic)
+        function incrementCounter() {
+            guessCount++; // Increment guess count
+            updateCounter(); // Update the counter display
+        }
+        $(document).ready(function() {
+                var enteredWords = [];  // Array to store entered words
+
+            // Function to handle the search
+            function handleSearch() {
+                var word = $('#word-input').val();
+                 if (enteredWords.includes(word)) {
+                $('#errorMessage').text('.خمنت هذه الكلمة مسبقاً').show();
+                return;  // Prevent further processing if the word is a repeat
+            }
+                $.ajax({
+                    url: '/search/?word=' + encodeURIComponent(word),
+                    type: 'GET',
+                    success: function(response) {
+                        console.log("Response received from server:", response);
+                        const index = parseInt(response.index, 10);
+                        if (!isNaN(index) && response.word) {
+                            addWordToContainer(response.word, index);
+                            enteredWords.push(word);
+                            $('#word-input').val('');
+                            if (index === 0) {
+                                $('.input-group').hide();
+                                $('#winning-message').show();
+                                confetti({
+                                    particleCount: 100,
+                                    spread: 70,
+                                    origin: { y: 0.6 }
+                                });
+                            }
+                        } else {
+                            $('#errorMessage').text('.الكلمة غير موجودة').show();
+                        }
+                    },
+                    error: function() {
+                        $('#errorMessage').text('.فضلا ادخل كلمة صحيحة').show();
+                    }
+                });
+            }
+
+            // Event listener for the button click
+            $('#search-button').click(function() {
+                handleSearch();
+            });
+
+            // Event listener for the enter key in the input field
+            $('#word-input').keypress(function(event) {
+                if (event.which == 13) {
+                    event.preventDefault();
+                    handleSearch();
+                }
+            });
+
+            function addWordToContainer(word, index) {
+                var progressWidth = 100 - (index / 5000) * 100;
+                var progressBarColor = '#ff0000';
+                if (progressWidth > 25) progressBarColor = '#ff8000';
+                if (progressWidth > 50) progressBarColor = '#90ee90';
+                if (progressWidth > 95) progressBarColor = '#008000';
+            
+                var $newWord = $('<div class="word-box"><div class="progress-bar" style="width: ' + progressWidth + '%; background-color: ' + progressBarColor + ';"></div><span class="word-text">' + word + '</span> <span class="index">' + index + '</span></div>');
+            
+                $('.word-box.last-word').removeClass('last-word');
+                $newWord.addClass('last-word');
+                incrementCounter();
+            
+                // Add the animation class to the new word box
+                $newWord.addClass('animated');
+            
+                $('.list-container').append($newWord);
+                $('.list-container').animate({
+                    scrollTop: $('.last-word').position().top
+                }, 500);
+                sortWords();
+            }
+
+            function sortWords() {
+                var $words = $('.word-box').sort(function(a, b) {
+                    return parseInt($(a).find('.index').text(), 10) - parseInt($(b).find('.index').text(), 10);
+                });
+                $('.list-container').html($words);
+            }
+
+            $('#word-input').on('input', function() {
+                $('#errorMessage').hide();
+            });
+        });
+    </script>
+
+</head>
+<body>
+    <div class="pattern-line"></div>
+    <div class="header">كلمتي</div>
+    <div id="winning-message" style="display: none; font-size: 24px; color: #008000; font-weight: bold; margin-top: 20px;">
+        <p>!وجدت الكلمة الصحيحة</p>
+    </div>
+
+    <div class="input-group" dir="rtl">
+        <span id="counter">0</span>
+        <input type="text" id="word-input" placeholder="ادخل كلمة">
+        <button class="button" id="search-button">خمن</button>
+    </div>
+    <div class="error-message" id="errorMessage" style="display: none;">الكلمة موجودة بالفعل!.</div>
+    <div class="list-container">
+        <!-- Added words will appear here -->
+    </div>
+</body>
+</html>
